@@ -1,0 +1,20 @@
+version: '3.8' # Versão da sintaxe do Docker Compose
+
+services:
+  app:
+    build: . # Constrói a imagem a partir do Dockerfile no diretório atual
+    ports:
+      - "3000:3000" # Mapeia a porta 3000 do host para a porta 3000 do contêiner
+    volumes:
+      - .:/app # Monta o diretório atual do host no /app do contêiner para desenvolvimento e persistência
+      # O volume acima (.=/app) vai garantir que o arquivo 'gerenciador.db' no seu host
+      # seja o mesmo arquivo 'gerenciador.db' dentro do contêiner.
+      # Isso significa que os dados serão persistentes e acessíveis diretamente no seu diretório do projeto.
+    environment:
+      NODE_ENV: production # Define o ambiente Node.js como produção
+    restart: always # Reinicia o contêiner automaticamente se ele falhar ou o Docker for reiniciado
+
+volumes:
+  db_data: # Define um volume nomeado, embora o volume montado diretamente já esteja cuidando da persistência.
+           # Este volume nomeado não está sendo usado diretamente pelo 'app' acima,
+           # mas é um exemplo de como um volume nomeado seria definido para outros casos.

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Estoque e Vendas Inteligente</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <h1>🛒 Controle de Estoque e Vendas</h1>
+
+    <div class="container">
+        <div class="section" id="cadastro-itens-section">
+            <div class="section-header-toggle">
+                <h2>📦 Cadastro de Itens</h2>
+                <button class="toggle-section-btn" data-target="cadastro-itens-section"><i class="fas fa-eye-slash"></i> Esconder</button>
+            </div>
+            <div class="section-content">
+                <form id="add-item-form" enctype="multipart/form-data">
+                    <div id="items-to-add-container">
+                        <div class="item-to-add" data-index="0">
+                            <input type="text" placeholder="Nome do Item" class="item-name" required>
+                            <input type="number" placeholder="Qtd" class="item-quantity" min="1" required>
+                            <input type="number" placeholder="Valor Interno (R$)" class="item-internal-value" step="0.01" min="0.01" required>
+                            <input type="number" placeholder="Valor de Venda (R$)" class="item-sale-value" step="0.01" min="0.01" required>
+                            <input type="file" class="item-image" name="imagens_item" accept="image/*">
+                            <button type="button" class="remove-add-item-btn" style="display: none;"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                    <button type="button" id="add-another-item-btn"><i class="fas fa-plus"></i> Adicionar Outro Item</button>
+                    <button type="submit"><i class="fas fa-save"></i> Salvar Itens</button>
+                </form>
+                <h3>Itens Cadastrados</h3>
+                <table id="items-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Quantidade</th>
+                            <th>Valor Interno (R$)</th>
+                            <th>Valor de Venda (R$)</th>
+                            <th>Imagem</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (itens.length === 0) { %>
+                            <tr><td colspan="6" style="text-align: center;">Nenhum item cadastrado.</td></tr>
+                        <% } else { %>
+                            <% itens.forEach(function(item) { %>
+                                <tr data-item-id="<%= item.id %>">
+                                    <td data-label="Nome"><input type="text" class="edit-name" value="<%= escapeHTML(item.nome) %>"></td>
+                                    <td data-label="Quantidade"><input type="number" class="edit-quantity" value="<%= item.quantidade %>" min="0"></td>
+                                    <td data-label="Valor Interno (R$)"><input type="number" class="edit-internal-value" value="<%= item.valor_interno.toFixed(2) %>" step="0.01" min="0"></td>
+                                    <td data-label="Valor de Venda (R$)"><input type="number" class="edit-sale-value" value="<%= item.valor_venda.toFixed(2) %>" step="0.01" min="0"></td>
+                                    <td data-label="Imagem">
+                                        <% if (item.imagem) { %>
+                                            <img src="/uploads/<%= item.imagem %>" alt="<%= item.nome %>" class="item-thumbnail" data-original-src="/uploads/<%= item.imagem %>">
+                                            <input type="hidden" class="existing-image-name" value="<%= item.imagem %>">
+                                        <% } else { %>
+                                            <p>Sem imagem</p>
+                                        <% } %>
+                                        <input type="file" class="edit-image" accept="image/*">
+                                        <button type="button" class="update-image-btn" style="background-color: #007bff; margin-top: 5px;"><i class="fas fa-image"></i> Salvar Imagem</button>
+                                    </td>
+                                    <td data-label="Ações">
+                                        <% if (item.imagem) { %>
+                                            <button type="button" class="remove-image-btn" data-item-id="<%= item.id %>"><i class="fas fa-image"></i> Remover IMG</button>
+                                        <% } %>
+                                        <button type="button" class="delete-btn" style="margin-top: 5px;"><i class="fas fa-trash-alt"></i> Excluir</button>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } %>
+                    </tbody>
+                </table>
+                <button type="button" id="save-all-items-btn" style="background-color: #007bff; margin-top: 20px;"><i class="fas fa-save"></i> Salvar Todas as Alterações dos Itens</button>
+            </div>
+        </div>
+
+        <div class="section" id="cadastro-clientes-section">
+            <div class="section-header-toggle">
+                <h2>👥 Cadastro de Clientes</h2>
+                <button class="toggle-section-btn" data-target="cadastro-clientes-section"><i class="fas fa-eye-slash"></i> Esconder</button>
+            </div>
+            <div class="section-content">
+                <form id="add-client-form">
+                    <input type="text" id="client-register-name" name="name" placeholder="Nome do Cliente" required>
+                    <input type="tel" id="client-register-phone" name="phone" placeholder="Telefone (opcional)">
+                    <input type="text" id="client-register-address" name="address" placeholder="Endereço (opcional)">
+                    <button type="submit"><i class="fas fa-user-plus"></i> Cadastrar Cliente</button>
+                </form>
+                <h3>Clientes Cadastrados</h3>
+                <table id="clients-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Telefone</th>
+                            <th>Endereço</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (clientes.length === 0) { %>
+                            <tr><td colspan="4" style="text-align: center;">Nenhum cliente cadastrado.</td></tr>
+                        <% } else { %>
+                            <% clientes.forEach(function(cliente) { %>
+                                <tr data-client-id="<%= cliente.id %>">
+                                    <td data-label="Nome"><input type="text" class="edit-client-name" value="<%= escapeHTML(cliente.nome) %>"></td>
+                                    <td data-label="Telefone"><input type="tel" class="edit-client-phone" value="<%= escapeHTML(cliente.telefone || '') %>"></td>
+                                    <td data-label="Endereço"><input type="text" class="edit-client-address" value="<%= escapeHTML(cliente.endereco || '') %>"></td>
+                                    <td data-label="Ações">
+                                        <button type="button" class="update-client-btn" style="background-color: #007bff;"><i class="fas fa-save"></i> Salvar</button>
+                                        <button type="button" class="delete-btn" style="margin-top: 5px;"><i class="fas fa-trash-alt"></i> Excluir</button>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section" id="nova-venda-section">
+            <div class="section-header-toggle">
+                <h2>🧾 Nova Venda</h2>
+                <button class="toggle-section-btn" data-target="nova-venda-section"><i class="fas fa-eye-slash"></i> Esconder</button>
+            </div>
+            <div class="section-content">
+                <form id="new-sale-form">
+                    <div class="form-group">
+                        <label for="sale-client-select">Selecione o Cliente:</label>
+                        <select id="sale-client-select" required>
+                            <option value="cliente-sem-cadastro">Cliente Sem Cadastro</option>
+                            <% clientes.forEach(function(cliente) { %>
+                                <option value="<%= cliente.id %>"><%= escapeHTML(cliente.nome) %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div id="client-anonymous-name-container" style="display: block;">
+                        <input type="text" placeholder="Nome do comprador (opcional)" id="sale-client-name-anonymous">
+                    </div>
+                    <hr>
+                    <div id="sale-items-container">
+                        </div>
+                    <button type="button" id="add-item-to-sale-btn"><i class="fas fa-cart-plus"></i> Adicionar Item à Venda</button>
+
+                    <div class="form-group" id="discount-group" style="display: none;">
+                        <label for="sale-discount">Desconto (R$):</label>
+                        <input type="number" id="sale-discount" placeholder="Ex: 5.00" min="0" step="0.01" value="0.00">
+                    </div>
+                    <div class="form-group" id="payment-method-group" style="display: none;">
+                        <label for="payment-method">Método de Pagamento:</label>
+                        <select id="payment-method" required>
+                            <option value="">Selecione...</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                            <option value="Cartão">Cartão</option>
+                            <option value="Pix">Pix</option>
+                            <option value="Boleto">Boleto</option>
+                        </select>
+                    </div>
+                    <button type="submit"><i class="fas fa-cash-register"></i> Registrar Venda</button>
+                </form>
+                <div id="sale-summary">
+                    <h3>Resumo da Venda</h3>
+                    <p>Total de Peças: <span id="total-pieces-sold">0</span></p>
+                    <p>Valor Bruto (itens): R$ <span id="total-value-before-discount">0.00</span></p>
+                    <p>Desconto Aplicado: R$ <span id="discount-applied">0.00</span></p>
+                    <p>Total da Venda (Líquido): R$ <span id="total-sale-value">0.00</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-full-width" id="historico-resumo-section">
+        <div class="section-header-toggle">
+            <h2>📊 Histórico e Resumo Financeiro</h2>
+            <button class="toggle-section-btn" data-target="historico-resumo-section"><i class="fas fa-eye-slash"></i> Esconder</button>
+        </div>
+        <div class="section-content">
+            <div id="financial-summary-cards">
+                <div class="summary-card">
+                    <h3>Faturamento Bruto Total</h3>
+                    <p>R$ <span id="grand-total-value">0.00</span></p>
+                </div>
+                <div class="summary-card">
+                    <h3>Lucro Estimado Total</h3>
+                    <p>R$ <span id="estimated-profit-value">0.00</span></p>
+                </div>
+            </div>
+
+            <div class="actions-history">
+                <button id="clear-history-btn" class="delete-btn"><i class="fas fa-trash-alt"></i> Limpar Tudo</button>
+            </div>
+
+            <div id="sales-history-container">
+                <% if (vendas.length === 0) { %>
+                    <p style="text-align: center; color: #777;">Nenhuma venda registrada ainda.</p>
+                <% } else { %>
+                    <% let grandTotal = 0; %>
+                    <% let estimatedProfit = 0; %>
+                    <% vendas.forEach(function(sale) { %>
+                        <% grandTotal += sale.valor_total; %>
+                        <% estimatedProfit += (sale.valor_total - sale.custo_interno_total); %>
+                        <div class="sale-card">
+                            <div class="sale-card-header">
+                                <div class="info-venda">
+                                    <span class="client-name">
+                                        <% if (sale.cliente_id) { %>
+                                            <% const client = clientes.find(c => c.id === sale.cliente_id); %>
+                                            <%= escapeHTML(client ? client.nome : sale.cliente_nome_anonimo || 'Cliente Removido') %>
+                                        <% } else { %>
+                                            <%= escapeHTML(sale.cliente_nome_anonimo || 'Cliente Sem Cadastro') %>
+                                        <% } %>
+                                    </span>
+                                    <span class="sale-id">Venda #<%= sale.id %></span>
+                                    <% if (sale.cliente_id) { %>
+                                        <% const client = clientes.find(c => c.id === sale.cliente_id); %>
+                                        <% if (client && client.telefone) { %><span class="client-phone">Tel: <%= escapeHTML(client.telefone) %></span><% } %>
+                                        <% if (client && client.endereco) { %><span class="client-address">End: <%= escapeHTML(client.endereco) %></span><% } %>
+                                    <% } %>
+                                </div>
+                                <span class="sale-date"><i class="fas fa-calendar-alt"></i> <%= new Date(sale.data_venda).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) %></span>
+                            </div>
+                            <div class="sale-card-body">
+                                <p>Itens vendidos:</p>
+                                <ul>
+                                    <% sale.items.forEach(function(item) { %>
+                                        <li>
+                                            <%= escapeHTML(item.nome_item) %> (<%= item.quantidade_vendida %> un.) - V.Unit: R$ <%= item.valor_unitario_venda.toFixed(2).replace('.', ',') %> - Total: <strong>R$ <%= (item.quantidade_vendida * item.valor_unitario_venda).toFixed(2).replace('.', ',') %></strong>
+                                        </li>
+                                    <% }); %>
+                                </ul>
+                                <p>Método de Pagamento: <strong><%= escapeHTML(sale.metodo_pagamento || 'N/A') %></strong></p>
+                                <p>Desconto Aplicado: <strong>R$ <%= sale.desconto ? sale.desconto.toFixed(2).replace('.', ',') : '0.00' %></strong></p>
+                            </div>
+                            <div class="sale-card-footer">
+                                <span>Total de Peças: <%= sale.total_pecas %></span>
+                                <strong>Valor Líquido da Venda: R$ <%= sale.valor_total.toFixed(2).replace('.', ',') %></strong>
+                                <button type="button" class="delete-sale-btn" data-sale-id="<%= sale.id %>"><i class="fas fa-trash-alt"></i> Excluir Venda</button>
+                            </div>
+                        </div>
+                    <% }); %>
+                    <script>
+                        document.getElementById('grand-total-value').textContent = <%= grandTotal.toFixed(2) %>.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        document.getElementById('estimated-profit-value').textContent = <%= estimatedProfit.toFixed(2) %>.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    </script>
+                <% } %>
+            </div>
+
+            <div class="export-sales-bottom">
+                <button id="export-sales-btn" class="export-btn"><i class="fas fa-file-csv"></i> Exportar Vendas (CSV)</button>
+            </div>
+        </div>
+    </div>
+    <script src="/js/client-script.js"></script>
+</body>
+</html>
