@@ -88,7 +88,26 @@ app.get('/', async (req, res) => {
         res.status(500).send('Erro ao carregar a página.');
     }
 });
+// --- ROTA DE CATÁLOGO PÚBLICO ---
+app.get('/catalogo', async (req, res) => {
+    try {
+        const itens = await new Promise((resolve, reject) => {
+            db.all('SELECT nome, quantidade, valor_venda, imagem FROM itens WHERE quantidade > 0 ORDER BY nome', [], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
 
+        res.render('catalog', {
+            itens: itens,
+            escapeHTML: escapeHTML // Passa a função escapeHTML para o template
+        });
+
+    } catch (err) {
+        console.error('Erro ao carregar catálogo:', err.message);
+        res.status(500).send('Erro ao carregar o catálogo de vendas.');
+    }
+});
 // --- ROTAS DE API PARA CLIENT-SCRIPT.JS BUSCAR DADOS ---
 app.get('/api/itens', async (req, res) => {
     try {
