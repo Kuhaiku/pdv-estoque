@@ -133,14 +133,60 @@
             }
         }
 
-        /* Esconde o título principal quando em fullscreen para otimizar espaço */
-        body.fullscreen h1 {
-            display: none;
+        /* --- Estilos para o Lightbox/Overlay de Imagem --- */
+        .image-overlay {
+            position: fixed; /* Fixa na tela */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9); /* Fundo escuro semi-transparente */
+            display: flex; /* Para centralizar a imagem */
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* Garante que fique acima de tudo */
+            opacity: 0; /* Começa invisível */
+            visibility: hidden; /* Esconde do fluxo do documento */
+            transition: opacity 0.3s ease-in-out; /* Transição suave */
         }
 
-        /* Oculta barra de rolagem quando em fullscreen */
-        body.fullscreen {
-            overflow: hidden !important;
+        .image-overlay.active {
+            opacity: 1; /* Torna visível */
+            visibility: visible;
+        }
+
+        .image-overlay img {
+            max-width: 90%; /* Limita o tamanho da imagem */
+            max-height: 90%; /* Limita o tamanho da imagem */
+            object-fit: contain; /* Garante que a imagem inteira seja visível */
+            display: block; /* Remove espaço extra abaixo da imagem */
+            background-color: #fff; /* Fundo branco para a imagem, se for transparente */
+            padding: 5px; /* Pequeno padding ao redor da imagem */
+            border-radius: var(--border-radius-small);
+        }
+
+        .image-overlay .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: white;
+            font-size: 2.5em; /* Tamanho do ícone X */
+            cursor: pointer;
+            z-index: 10000; /* Acima da imagem */
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5); /* Sombra para o X */
+        }
+
+        .image-overlay .close-btn:hover {
+            color: var(--color-accent-red); /* Cor ao passar o mouse */
+        }
+
+        /* Oculta o scroll do body quando o overlay estiver ativo */
+        body.no-scroll {
+            overflow: hidden;
         }
     </style>
 </head>
@@ -172,32 +218,55 @@
         <% } %>
     </div>
 
+    <div class="image-overlay" id="imageOverlay">
+        <button class="close-btn" id="closeOverlayBtn"><i class="fas fa-times-circle"></i></button>
+        <img src="" alt="Imagem do produto" id="overlayImage">
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const itemImages = document.querySelectorAll('.catalog-item-img');
+            const imageOverlay = document.getElementById('imageOverlay');
+            const overlayImage = document.getElementById('overlayImage');
+            const closeOverlayBtn = document.getElementById('closeOverlayBtn');
             const catalogBody = document.getElementById('catalogBody');
-            const itemImages = document.querySelectorAll('.catalog-item-img'); // Seleciona todas as imagens do catálogo
 
-            function toggleFullscreen() {
-                if (!document.fullscreenElement) {
-                    catalogBody.requestFullscreen().catch(err => {
-                        console.error(`Erro ao ativar tela cheia: ${err.message} (${err.name})`);
-                    });
-                } else {
-                    document.exitFullscreen();
-                }
+            // Função para abrir o overlay
+            function openOverlay(imageSrc) {
+                overlayImage.src = imageSrc;
+                imageOverlay.classList.add('active');
+                catalogBody.classList.add('no-scroll'); // Previne rolagem do body
             }
 
-            // Adiciona o event listener de clique a cada imagem
+            // Função para fechar o overlay
+            function closeOverlay() {
+                imageOverlay.classList.remove('active');
+                catalogBody.classList.remove('no-scroll'); // Permite rolagem do body
+                overlayImage.src = ''; // Limpa a imagem
+            }
+
+            // Adiciona o event listener para cada imagem do catálogo
             itemImages.forEach(img => {
-                img.addEventListener('click', toggleFullscreen);
+                img.addEventListener('click', (event) => {
+                    openOverlay(event.target.src);
+                });
             });
 
-            // Adiciona/remove a classe 'fullscreen' ao body quando o modo fullscreen muda
-            document.addEventListener('fullscreenchange', () => {
-                if (document.fullscreenElement) {
-                    catalogBody.classList.add('fullscreen');
-                } else {
-                    catalogBody.classList.remove('fullscreen');
+            // Adiciona event listener para o botão de fechar
+            closeOverlayBtn.addEventListener('click', closeOverlay);
+
+            // Fecha o overlay ao clicar fora da imagem (no próprio overlay)
+            imageOverlay.addEventListener('click', (event) => {
+                // Se o clique não foi na imagem ou no botão de fechar
+                if (event.target === imageOverlay) {
+                    closeOverlay();
+                }
+            });
+
+            // Fecha o overlay ao pressionar ESC
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && imageOverlay.classList.contains('active')) {
+                    closeOverlay();
                 }
             });
         });
