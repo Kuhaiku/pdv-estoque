@@ -38,14 +38,15 @@
             object-fit: contain; /* Garante que a imagem inteira seja visível */
             border-bottom: 1px solid var(--color-border-light);
             background-color: #f8f8f8; /* Fundo claro para imagens transparentes */
+            cursor: pointer; /* Indica que a imagem é clicável */
         }
 
         .catalog-item-info {
             padding: 10px;
             display: flex;
             flex-direction: column;
-            flex-grow: 1; /* Permite que ocupe o espaço restante */
-            justify-content: space-between; /* Espaço entre nome/qtd e valor */
+            flex-grow: 1;
+            justify-content: space-between;
         }
 
         .catalog-item-name {
@@ -53,7 +54,7 @@
             color: var(--color-primary-blue-dark);
             margin-bottom: 5px;
             font-size: 1em;
-            word-break: break-word; /* Quebra palavras longas */
+            word-break: break-word;
         }
 
         .catalog-item-quantity {
@@ -66,9 +67,9 @@
             font-size: 1.3em;
             font-weight: bold;
             color: var(--color-accent-green-dark);
-            margin-top: auto; /* Empurra o preço para baixo */
-            padding-top: 10px; /* Espaço acima do preço */
-            border-top: 1px solid #eee; /* Separador para o preço */
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
         }
 
         .no-items-message {
@@ -100,14 +101,14 @@
 
         @media (max-width: 480px) {
             .catalog-container {
-                grid-template-columns: 1fr; /* Uma coluna em telas muito pequenas */
+                grid-template-columns: 1fr;
                 padding: 5px;
             }
             .catalog-item-card img {
                 height: 120px;
             }
             .catalog-item-card {
-                flex-direction: row; /* Layout horizontal em telas muito pequenas */
+                flex-direction: row;
                 align-items: center;
             }
             .catalog-item-card img {
@@ -124,16 +125,26 @@
             .catalog-item-price {
                 padding-top: 0;
                 border-top: none;
-                margin-left: auto; /* Empurra o preço para a direita */
+                margin-left: auto;
                 font-size: 1.2em;
             }
             .catalog-item-name {
                 margin-bottom: 2px;
             }
         }
+
+        /* Esconde o título principal quando em fullscreen para otimizar espaço */
+        body.fullscreen h1 {
+            display: none;
+        }
+
+        /* Oculta barra de rolagem quando em fullscreen */
+        body.fullscreen {
+            overflow: hidden !important;
+        }
     </style>
 </head>
-<body>
+<body id="catalogBody">
     <h1>Catálogo de Vendas da Érica</h1>
 
     <div class="catalog-container">
@@ -142,9 +153,9 @@
                 <% if (item.quantidade > 0) { %>
                     <div class="catalog-item-card">
                         <% if (item.imagem) { %>
-                            <img src="/uploads/<%= item.imagem %>" alt="<%= escapeHTML(item.nome) %>">
+                            <img class="catalog-item-img" src="/uploads/<%= item.imagem %>" alt="<%= escapeHTML(item.nome) %>">
                         <% } else { %>
-                            <img src="/img/placeholder.png" alt="Sem imagem">
+                            <img class="catalog-item-img" src="/img/placeholder.png" alt="Sem imagem">
                         <% } %>
                         <div class="catalog-item-info">
                             <div class="text-info">
@@ -160,5 +171,36 @@
             <p class="no-items-message">Nenhum item disponível no catálogo no momento.</p>
         <% } %>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const catalogBody = document.getElementById('catalogBody');
+            const itemImages = document.querySelectorAll('.catalog-item-img'); // Seleciona todas as imagens do catálogo
+
+            function toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    catalogBody.requestFullscreen().catch(err => {
+                        console.error(`Erro ao ativar tela cheia: ${err.message} (${err.name})`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+
+            // Adiciona o event listener de clique a cada imagem
+            itemImages.forEach(img => {
+                img.addEventListener('click', toggleFullscreen);
+            });
+
+            // Adiciona/remove a classe 'fullscreen' ao body quando o modo fullscreen muda
+            document.addEventListener('fullscreenchange', () => {
+                if (document.fullscreenElement) {
+                    catalogBody.classList.add('fullscreen');
+                } else {
+                    catalogBody.classList.remove('fullscreen');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
