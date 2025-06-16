@@ -4,10 +4,103 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo de Vendas da Érica</title>
-    <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Estilos específicos para o catálogo */
+        /* ==================================== */
+        /* Estilos do style.css (geral) - Copiados aqui */
+        /* ==================================== */
+        :root {
+            --color-primary-blue-dark: #2c3e50;
+            --color-primary-blue-medium: #34495e;
+            --color-primary-blue-light: #ecf0f1;
+            --color-accent-green-dark: #27ae60;
+            --color-accent-green-light: #2ecc71;
+            --color-accent-red: #e74c3c;
+            --color-accent-orange: #f39c12;
+            --color-text-dark: #333;
+            --color-text-light: #7f8c8d;
+            --color-white: #ffffff;
+            --color-shadow-light: rgba(0, 0, 0, 0.1);
+            --color-border-light: #ddd;
+            --border-radius-small: 5px;
+            --border-radius-medium: 8px;
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: var(--color-primary-blue-light);
+            color: var(--color-text-dark);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        h1 {
+            color: var(--color-primary-blue-dark);
+            text-align: center;
+            padding: 20px 0;
+            margin: 0;
+            background-color: var(--color-white);
+            box-shadow: var(--color-shadow-light);
+            font-size: 2em;
+            border-bottom: 1px solid var(--color-border-light);
+        }
+
+        /* Classes e estilos reutilizados de client-script.js/style.css para o modal de imagem */
+        .image-modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 10000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+            justify-content: center; /* Center content horizontally */
+            align-items: center; /* Center content vertically */
+        }
+
+        .image-modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain; /* Ensure image fits */
+            background-color: white; /* For transparency */
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+            z-index: 10001; /* Above modal content */
+        }
+
+        .close-modal-btn:hover,
+        .close-modal-btn:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        body.modal-open {
+            overflow: hidden; /* Prevent scrolling when modal is open */
+        }
+
+
+        /* ==================================== */
+        /* Estilos específicos para o catálogo - Mantidos aqui */
+        /* ==================================== */
         .catalog-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -132,65 +225,9 @@
                 margin-bottom: 2px;
             }
         }
-
-        /* --- Estilos para o Lightbox/Overlay de Imagem --- */
-        .image-overlay {
-            position: fixed; /* Fixa na tela */
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9); /* Fundo escuro semi-transparente */
-            display: flex; /* Para centralizar a imagem */
-            justify-content: center;
-            align-items: center;
-            z-index: 9999; /* Garante que fique acima de tudo */
-            opacity: 0; /* Começa invisível */
-            visibility: hidden; /* Esconde do fluxo do documento */
-            transition: opacity 0.3s ease-in-out; /* Transição suave */
-        }
-
-        .image-overlay.active {
-            opacity: 1; /* Torna visível */
-            visibility: visible;
-        }
-
-        .image-overlay img {
-            max-width: 90%; /* Limita o tamanho da imagem */
-            max-height: 90%; /* Limita o tamanho da imagem */
-            object-fit: contain; /* Garante que a imagem inteira seja visível */
-            display: block; /* Remove espaço extra abaixo da imagem */
-            background-color: #fff; /* Fundo branco para a imagem, se for transparente */
-            padding: 5px; /* Pequeno padding ao redor da imagem */
-            border-radius: var(--border-radius-small);
-        }
-
-        .image-overlay .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            color: white;
-            font-size: 2.5em; /* Tamanho do ícone X */
-            cursor: pointer;
-            z-index: 10000; /* Acima da imagem */
-            background: none;
-            border: none;
-            padding: 0;
-            line-height: 1;
-            text-shadow: 0 0 5px rgba(0,0,0,0.5); /* Sombra para o X */
-        }
-
-        .image-overlay .close-btn:hover {
-            color: var(--color-accent-red); /* Cor ao passar o mouse */
-        }
-
-        /* Oculta o scroll do body quando o overlay estiver ativo */
-        body.no-scroll {
-            overflow: hidden;
-        }
     </style>
 </head>
-<body id="catalogBody">
+<body>
     <h1>Catálogo de Vendas da Érica</h1>
 
     <div class="catalog-container">
@@ -199,9 +236,9 @@
                 <% if (item.quantidade > 0) { %>
                     <div class="catalog-item-card">
                         <% if (item.imagem) { %>
-                            <img class="catalog-item-img" src="/uploads/<%= item.imagem %>" alt="<%= escapeHTML(item.nome) %>">
+                            <img class="catalog-item-img preview-image" src="/uploads/<%= item.imagem %>" alt="<%= escapeHTML(item.nome) %>" data-original-src="/uploads/<%= item.imagem %>">
                         <% } else { %>
-                            <img class="catalog-item-img" src="/img/placeholder.png" alt="Sem imagem">
+                            <img class="catalog-item-img preview-image" src="/img/placeholder.png" alt="Sem imagem" data-original-src="/img/placeholder.png">
                         <% } %>
                         <div class="catalog-item-info">
                             <div class="text-info">
@@ -218,57 +255,58 @@
         <% } %>
     </div>
 
-    <div class="image-overlay" id="imageOverlay">
-        <button class="close-btn" id="closeOverlayBtn"><i class="fas fa-times-circle"></i></button>
-        <img src="" alt="Imagem do produto" id="overlayImage">
+    <div id="imageModal" class="image-modal">
+        <span class="close-modal-btn">&times;</span>
+        <img class="image-modal-content" id="modalImage">
     </div>
 
     <script>
+        /* ==================================== */
+        /* JavaScript do client-script.js (relevante ao modal) - Copiado aqui */
+        /* ==================================== */
         document.addEventListener('DOMContentLoaded', () => {
-            const itemImages = document.querySelectorAll('.catalog-item-img');
-            const imageOverlay = document.getElementById('imageOverlay');
-            const overlayImage = document.getElementById('overlayImage');
-            const closeOverlayBtn = document.getElementById('closeOverlayBtn');
-            const catalogBody = document.getElementById('catalogBody');
+            const previewImages = document.querySelectorAll('.preview-image');
+            const imageModal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const closeModalBtn = document.querySelector('.close-modal-btn');
+            const body = document.body;
 
-            // Função para abrir o overlay
-            function openOverlay(imageSrc) {
-                overlayImage.src = imageSrc;
-                imageOverlay.classList.add('active');
-                catalogBody.classList.add('no-scroll'); // Previne rolagem do body
-            }
-
-            // Função para fechar o overlay
-            function closeOverlay() {
-                imageOverlay.classList.remove('active');
-                catalogBody.classList.remove('no-scroll'); // Permite rolagem do body
-                overlayImage.src = ''; // Limpa a imagem
-            }
-
-            // Adiciona o event listener para cada imagem do catálogo
-            itemImages.forEach(img => {
-                img.addEventListener('click', (event) => {
-                    openOverlay(event.target.src);
+            previewImages.forEach(img => {
+                img.addEventListener('click', () => {
+                    const originalSrc = img.getAttribute('data-original-src');
+                    modalImage.src = originalSrc;
+                    imageModal.style.display = 'flex'; // Usar flex para centralizar
+                    body.classList.add('modal-open'); // Adiciona classe para esconder scroll
                 });
             });
 
-            // Adiciona event listener para o botão de fechar
-            closeOverlayBtn.addEventListener('click', closeOverlay);
+            closeModalBtn.addEventListener('click', () => {
+                imageModal.style.display = 'none';
+                body.classList.remove('modal-open');
+                modalImage.src = ''; // Limpa a imagem ao fechar
+            });
 
-            // Fecha o overlay ao clicar fora da imagem (no próprio overlay)
-            imageOverlay.addEventListener('click', (event) => {
-                // Se o clique não foi na imagem ou no botão de fechar
-                if (event.target === imageOverlay) {
-                    closeOverlay();
+            // Fechar modal ao clicar fora da imagem
+            imageModal.addEventListener('click', (event) => {
+                if (event.target === imageModal) {
+                    imageModal.style.display = 'none';
+                    body.classList.remove('modal-open');
+                    modalImage.src = '';
                 }
             });
 
-            // Fecha o overlay ao pressionar ESC
+            // Fechar modal ao pressionar ESC
             document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape' && imageOverlay.classList.contains('active')) {
-                    closeOverlay();
+                if (event.key === 'Escape' && imageModal.style.display === 'flex') {
+                    imageModal.style.display = 'none';
+                    body.classList.remove('modal-open');
+                    modalImage.src = '';
                 }
             });
+
+            // Adicione outras lógicas que existiam no client-script.js que são relevantes para o catálogo
+            // Por exemplo, formatação de moeda, etc., se houver.
+            // No entanto, para o objetivo de FULLSCREEN DA IMAGEM, o código acima é o suficiente.
         });
     </script>
 </body>
