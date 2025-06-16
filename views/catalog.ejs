@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Vendas da Érica</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos específicos para o catálogo */
+        .catalog-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            padding: 10px;
+            max-width: 1200px;
+            margin: 20px auto;
+        }
+
+        .catalog-item-card {
+            background-color: var(--color-white);
+            border-radius: var(--border-radius-medium);
+            box-shadow: var(--color-shadow-light);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            text-align: center;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .catalog-item-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .catalog-item-card img {
+            width: 100%;
+            height: 150px; /* Altura fixa para as imagens */
+            object-fit: contain; /* Garante que a imagem inteira seja visível */
+            border-bottom: 1px solid var(--color-border-light);
+            background-color: #f8f8f8; /* Fundo claro para imagens transparentes */
+        }
+
+        .catalog-item-info {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1; /* Permite que ocupe o espaço restante */
+            justify-content: space-between; /* Espaço entre nome/qtd e valor */
+        }
+
+        .catalog-item-name {
+            font-weight: bold;
+            color: var(--color-primary-blue-dark);
+            margin-bottom: 5px;
+            font-size: 1em;
+            word-break: break-word; /* Quebra palavras longas */
+        }
+
+        .catalog-item-quantity {
+            font-size: 0.9em;
+            color: var(--color-text-light);
+            margin-bottom: 10px;
+        }
+
+        .catalog-item-price {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--color-accent-green-dark);
+            margin-top: auto; /* Empurra o preço para baixo */
+            padding-top: 10px; /* Espaço acima do preço */
+            border-top: 1px solid #eee; /* Separador para o preço */
+        }
+
+        .no-items-message {
+            text-align: center;
+            color: var(--color-text-light);
+            font-size: 1.2em;
+            margin-top: 50px;
+        }
+
+        /* Responsive adjustments for catalog */
+        @media (max-width: 768px) {
+            .catalog-container {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 10px;
+            }
+            .catalog-item-card {
+                margin: 0;
+            }
+            .catalog-item-name {
+                font-size: 0.95em;
+            }
+            .catalog-item-quantity {
+                font-size: 0.85em;
+            }
+            .catalog-item-price {
+                font-size: 1.1em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .catalog-container {
+                grid-template-columns: 1fr; /* Uma coluna em telas muito pequenas */
+                padding: 5px;
+            }
+            .catalog-item-card img {
+                height: 120px;
+            }
+            .catalog-item-card {
+                flex-direction: row; /* Layout horizontal em telas muito pequenas */
+                align-items: center;
+            }
+            .catalog-item-card img {
+                width: 100px;
+                flex-shrink: 0;
+                border-bottom: none;
+                border-right: 1px solid var(--color-border-light);
+            }
+            .catalog-item-info {
+                text-align: left;
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+            .catalog-item-price {
+                padding-top: 0;
+                border-top: none;
+                margin-left: auto; /* Empurra o preço para a direita */
+                font-size: 1.2em;
+            }
+            .catalog-item-name {
+                margin-bottom: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Catálogo de Vendas da Érica</h1>
+
+    <div class="catalog-container">
+        <% if (itens.length > 0) { %>
+            <% itens.forEach(item => { %>
+                <% if (item.quantidade > 0) { %>
+                    <div class="catalog-item-card">
+                        <% if (item.imagem) { %>
+                            <img src="/uploads/<%= item.imagem %>" alt="<%= escapeHTML(item.nome) %>">
+                        <% } else { %>
+                            <img src="/img/placeholder.png" alt="Sem imagem">
+                        <% } %>
+                        <div class="catalog-item-info">
+                            <div class="text-info">
+                                <div class="catalog-item-name"><%= escapeHTML(item.nome) %></div>
+                                <div class="catalog-item-quantity">Qtd: <%= item.quantidade %></div>
+                            </div>
+                            <div class="catalog-item-price">R$ <%= item.valor_venda.toFixed(2).replace('.', ',') %></div>
+                        </div>
+                    </div>
+                <% } %>
+            <% }); %>
+        <% } else { %>
+            <p class="no-items-message">Nenhum item disponível no catálogo no momento.</p>
+        <% } %>
+    </div>
+</body>
+</html>
