@@ -4,13 +4,13 @@ const multer = require('multer');
 const path = require('path');
 const { stringify } = require('csv-stringify');
 const db = require('./database');
-const fs = require('fs'); // Para manipular arquivos do sistema (remover imagem)
+const fs = require('fs'); // Para manipular arquivos do sistema (remover imagem e manipular DB)
 
 const app = express();
 const port = 3000;
 
 const PERCENTUAL_VENDA_PADRAO = 1.30;
-const ADMIN_PASSWORD = 'admin';
+const ADMIN_PASSWORD = 'admin'; // Senha de administrador para operações críticas
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -30,6 +30,18 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage: storage });
+
+// Storage para upload do banco de dados
+const dbStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './'); // Salva na raiz do projeto onde o gerenciador.db está
+    },
+    filename: function (req, file, cb) {
+        // Assegura que o arquivo será salvo como 'gerenciador.db'
+        cb(null, 'gerenciador.db');
+    }
+});
+const uploadDb = multer({ storage: dbStorage });
 
 const escapeHTML = (str) => {
     if (typeof str !== 'string') return str;
@@ -157,7 +169,7 @@ app.post('/itens/adicionar', upload.array('imagens_item'), (req, res) => {
             const imagemNome = item.imagem_original_nome ? fileMap.get(item.imagem_original_nome) : null;
 
             const { nome, quantidade, valor_interno, valor_venda } = item;
-            if (!nome || isNaN(quantidade) || quantidade <= 0 || isNaN(valor_interno) || valor_interno <= 0 || isNaN(valor_venda) || valor_venda <= 0) {
+            if (!nome || isNaN(quantidade) || quantity <= 0 || isNaN(valor_interno) || valor_interno <= 0 || isNaN(valor_venda) || valor_venda <= 0) {
                 console.warn(`Item inválido ignorado na adição: ${JSON.stringify(item)}`);
                 return;
             }
@@ -631,6 +643,39 @@ app.get('/vendas/exportar-csv', async (req, res) => {
         res.status(500).send('Erro ao exportar vendas.');
     }
 });
+
+// --- NOVAS ROTAS PARA GERENCIAMENTO DO BANCO DE DADOS ---
+
+// Rota para baixar o arquivo gerenciador.db
+app.get('/admin/backup-db', (req, res) => {
+    const dbPath = path.join(__dirname, 'gerenciador.db');
+    if (fs.existsSync(dbPath)) {
+        res.download(dbPath, 'gerenciador.db', (err) => {
+            if (err) {
+                console.error('Erro ao baixar o banco de dados:', err.message);
+                res.status(500).send('Erro ao baixar o banco de dados.');
+            }
+        });
+    } else {
+        res.status(404).send('Arquivo do banco de dados não encontrado.');
+    }
+});
+
+// Rota para substituir o arquivo gerenciador.db
+app.post('/admin/replace-db', uploadDb.single('database_file'), (req, res) => {
+    const { password } = req.body;
+    if (password !== ADMIN_PASSWORD) {
+        return res.status(403).json({ success: false, message: 'Senha de administrador incorreta.' });
+    }
+
+    if (!req.file) {
+        return res.status(400).json({ success: false, message: 'Nenhum arquivo de banco de dados enviado.' });
+    }
+
+    // O arquivo já foi salvo como 'gerenciador.db' pelo Multer
+    res.json({ success: true, message: 'Banco de dados substituído com sucesso! Reinicie a aplicação para aplicar as mudanças.' });
+});
+
 
 app.listen(port, () => {
     console.log(`Servidor de Gerenciamento rodando em http://localhost:${port}`);
