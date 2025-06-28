@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Substituir Banco de Dados</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: 50px auto;
+            text-align: center;
+        }
+        h1 {
+            color: #0056b3;
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-align: left;
+        }
+        input[type="file"],
+        input[type="password"] {
+            width: calc(100% - 22px); /* Ajuste para padding */
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: none; /* Escondido por padrão */
+        }
+        #message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        #message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Substituir Banco de Dados (gerenciador.db)</h1>
+        <p>Selecione o novo arquivo `gerenciador.db` e insira a senha de administrador.</p>
+        <form id="uploadForm">
+            <label for="databaseFile">Arquivo do Banco de Dados (.db):</label>
+            <input type="file" id="databaseFile" name="database_file" accept=".db" required>
+
+            <label for="adminPassword">Senha de Administrador:</label>
+            <input type="password" id="adminPassword" name="password" required>
+
+            <button type="submit">Substituir Banco de Dados</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Impede o envio padrão do formulário
+
+            const fileInput = document.getElementById('databaseFile');
+            const passwordInput = document.getElementById('adminPassword');
+            const messageDiv = document.getElementById('message');
+
+            messageDiv.style.display = 'none'; // Esconde a mensagem anterior
+            messageDiv.className = ''; // Limpa classes de estilo
+
+            if (fileInput.files.length === 0) {
+                messageDiv.textContent = 'Por favor, selecione um arquivo .db.';
+                messageDiv.classList.add('error');
+                messageDiv.style.display = 'block';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('database_file', fileInput.files[0]);
+            formData.append('password', passwordInput.value);
+
+            try {
+                const response = await fetch('http://localhost:3000/admin/replace-db', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    messageDiv.textContent = result.message + ' Lembre-se de reiniciar o servidor Node.js!';
+                    messageDiv.classList.add('success');
+                } else {
+                    messageDiv.textContent = 'Erro: ' + result.message;
+                    messageDiv.classList.add('error');
+                }
+            } catch (error) {
+                messageDiv.textContent = 'Erro ao conectar com o servidor: ' + error.message;
+                messageDiv.classList.add('error');
+            } finally {
+                messageDiv.style.display = 'block'; // Mostra a mensagem
+            }
+        });
+    </script>
+</body>
+</html>
