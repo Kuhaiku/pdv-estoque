@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Variáveis de Configuração ---
-    const PERCENTUAL_VENDA_PADRAO = 1.30;
+    const PERCENTUAL_VENDA_PADRAO = 1.00;
     const ADMIN_PASSWORD = 'admin';
 
     // --- Elementos do DOM ---
